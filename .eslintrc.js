@@ -2,6 +2,8 @@ module.exports = {
   env: {
     browser: true,
     es2021: true,
+    commonjs: true,
+    hardhat: true,
   },
   extends: ['airbnb-base', 'eslint:recommended', 'plugin:prettier/recommended'],
   parserOptions: {

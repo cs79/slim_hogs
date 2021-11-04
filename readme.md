@@ -1,17 +1,24 @@
 # slim_hog
 
+Slim version of some Smart Pigs.
 
 ## Setup
+
+Install dependencies
 
     yarn
 
 ## Test
 
+Run some tests
+
     yarn test
 
+## Size the contracts
 
+Get the size of your contracts after compilation
 
-    @babel/cli @babel/core @babel/node @babel/preset-env eslint eslint-config-airbnb-base eslint-config-prettier eslint-plugin-import eslint-plugin-prettier nodemon prettier
+    yarn contract-sizer
 
 ## HardHat
 

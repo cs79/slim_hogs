@@ -10,8 +10,8 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: 'module',
   },
-  plugins: ['prettier'],
-
+  // plugins: ['prettier'],
+  ignorePatterns: ['**.sol'],
   rules: {
     semi: ['error', 'always'],
     'no-unused-vars': [

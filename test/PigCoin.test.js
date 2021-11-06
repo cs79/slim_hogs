@@ -1,6 +1,5 @@
-const { expect } = require("chai");
-const { ethers } = require("hardhat");
-const { deployContract, MockProvider, solidity} = require('ethereum-waffle');
+const { expect } = require('chai');
+const { ethers } = require('hardhat');
 
 describe('PigCoin', () => {
   let wallet;
@@ -10,8 +9,8 @@ describe('PigCoin', () => {
 
   beforeEach(async () => {
     [wallet, walletTo] = await ethers.getSigners();
-    const PigCoin = await ethers.getContractFactory("PigCoin");
-    token = await PigCoin.deploy("1000");
+    PigCoin = await ethers.getContractFactory('PigCoin');
+    token = await PigCoin.deploy('1000');
     await token.deployed();
   });
 
@@ -26,12 +25,14 @@ describe('PigCoin', () => {
   });
 
   it('Can not transfer above the amount', async () => {
-    await expect(token.transfer(walletTo.address, 1007))
-      .to.be.revertedWith("VM Exception while processing transaction: reverted with reason string 'ERC20: transfer amount exceeds balance'");
+    await expect(token.transfer(walletTo.address, 1007)).to.be.revertedWith(
+      "VM Exception while processing transaction: reverted with reason string 'ERC20: transfer amount exceeds balance'"
+    );
   });
 
   it('Send transaction changes receiver balance', async () => {
-    await expect(() => wallet.sendTransaction({to: walletTo.address, value: 200}))
-      .to.changeBalance(walletTo, 200);
+    await expect(() =>
+      wallet.sendTransaction({ to: walletTo.address, value: 200 })
+    ).to.changeBalance(walletTo, 200);
   });
 });

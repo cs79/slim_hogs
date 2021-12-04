@@ -37,22 +37,31 @@ describe('PigCoin', () => {
   });
 
   it('logs the gas price of an ether transfer', async () => {
-    var tx = await (wallet.sendTransaction({ to: walletTo.address, value: 200 }))
-    var rcpt = await (tx.wait());
+    const tx = await (wallet.sendTransaction({ to: walletTo.address, value: 200 }));
+    const rcpt = await (tx.wait());
     // console.log("rcpt: ");
     // console.log(rcpt);
-    console.log("Gas used for transfer: " + rcpt.gasUsed);
+    console.log("Gas used for ether transfer: " + rcpt.gasUsed);
   });
 
   it('logs the gas price of an allowance approval', async () => {
-    var tx = await (token.approve(walletTo.address, 50));
-    var rcpt = await (tx.wait());
+    const tx = await (token.approve(walletTo.address, 100));
+    const rcpt = await (tx.wait());
     console.log("Gas used for approval: " + rcpt.gasUsed);
   });
-  
-  // TODO: need to add gas cost tests for the following
-  // functions on PigCoin.sol CONTRACT ("token" variable):
-  // transfer
-  // transferFrom
+
+  it('logs the gas price of a transfer', async () => {
+    const tx = await (token.transfer(walletTo.address, 50));
+    const rcpt = await (tx.wait());
+    console.log("Gas used for transfer: " + rcpt.gasUsed);
+  });
+
+  it('logs the gas price of a transferFrom', async () => {
+    // console.log("Allowance: " + token.allowance(wallet, walletTo))
+    token.approve(wallet.address, 100)
+    const tx = await (token.transferFrom(wallet.address, walletTo.address, 50));
+    const rcpt = await (tx.wait());
+    console.log("Gas used for transferFrom: " + rcpt.gasUsed);
+  });
 
 });

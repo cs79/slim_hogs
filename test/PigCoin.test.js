@@ -35,4 +35,18 @@ describe('PigCoin', () => {
       wallet.sendTransaction({ to: walletTo.address, value: 200 })
     ).to.changeBalance(walletTo, 200);
   });
+
+  it('logs the gas price of a transfer', async () => {
+    var tx = await (wallet.sendTransaction({ to: walletTo.address, value: 200 }))
+    var rcpt = await (tx.wait());
+    // console.log("rcpt: ");
+    // console.log(rcpt);
+    console.log("Gas used for transfer: " + rcpt.gasUsed);
+  });
+
+  it('logs the gas price of an allowance approval', async () => {
+    var tx = await (token.approve(walletTo.address, 50));
+    var rcpt = await (tx.wait());
+    console.log("Gas used for approval: " + rcpt.gasUsed);
+  });
 });

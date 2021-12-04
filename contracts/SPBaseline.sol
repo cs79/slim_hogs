@@ -334,6 +334,10 @@ contract SPBaseline {
         require(msg.sender != address(0));
         require(_tokenId != 0, "tokenId cannot be zero");
         // require a settlement price to be returned from an oracle
+        // for SPBaseline, mock this as we are not integrating an oracle
+        uint256 fakePrice = 8000; // 20% drop from tested price of 10000
+        piggies[_tokenId].uintDetails.settlementPrice = fakePrice;
+        piggies[_tokenId].flags.hasBeenCleared = true;
         require(piggies[_tokenId].flags.hasBeenCleared, "piggy is not cleared");
 
         // check if arbitration is set, cooldown has passed
@@ -357,6 +361,9 @@ contract SPBaseline {
         if (payout > collateral) {
         payout = collateral;
         }
+
+        ERC20Balances[holder][collateralERC] = ERC20Balances[holder][collateralERC].add(payout);
+        ERC20Balances[writer][collateralERC] = ERC20Balances[writer][collateralERC].add(collateral).sub(payout);
 
         // emit SettlePiggy(
         // _tokenId,
@@ -393,15 +400,19 @@ contract SPBaseline {
         // _paymentToken
         // );
 
-        (bool success, bytes memory result) = address(_paymentToken).call(
-        abi.encodeWithSignature(
-            "transfer(address,uint256)",
-            msg.sender,
-            _amount
-        )
-        );
-        bytes32 txCheck = abi.decode(result, (bytes32));
-        require(success && txCheck == TX_SUCCESS, "token xfer failed");
+        // assume that transfer correctly took place on ERC-20
+
+        // TODO: !!! NEED TO ACCOUNT FOR COST OF transfer() PER PigCoin CONTRACT HERE !!!
+
+        // (bool success, bytes memory result) = address(_paymentToken).call(
+        // abi.encodeWithSignature(
+        //     "transfer(address,uint256)",
+        //     msg.sender,
+        //     _amount
+        // )
+        // );
+        // bytes32 txCheck = abi.decode(result, (bytes32));
+        // require(success && txCheck == TX_SUCCESS, "token xfer failed");
 
         return true;
     }

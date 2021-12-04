@@ -49,4 +49,5 @@ describe('PigCoin', () => {
     var rcpt = await (tx.wait());
     console.log("Gas used for approval: " + rcpt.gasUsed);
   });
+  
 });

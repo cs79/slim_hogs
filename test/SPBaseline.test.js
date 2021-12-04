@@ -13,9 +13,9 @@ describe('SPBaseline', () => {
   const arbi = "0xface36c54eba05edebed44c4f986f49a5de55113";  // mocked address
   const coll = 1000;          // collateral
   const lots = 1;             // lot size
-  const spri = 100;           // strike
+  const spri = 10000;         // strike
   const expr = 1650000000;    // expiry unix epoch
-  const euro = true;          // European ?
+  const euro = false;         // European ?
   const ispt = false;         // put ?
   const isrq = false;         // request ?
 
@@ -86,52 +86,55 @@ describe('SPBaseline', () => {
     console.log("Gas used for reclaimAndBurn: " + rcpt.gasUsed);
   });
 
-  // it('logs the gas price of a settlePiggy', async () => {
-  //   await (deployedSPB.createPiggy(cerc,
-  //     dres,
-  //     arbi,
-  //     coll,
-  //     lots,
-  //     spri,
-  //     expr,
-  //     euro,
-  //     ispt,
-  //     isrq));
-  //
-  //   const testTokenId = await (deployedSPB.tokenId());
-  //   const tx2 = await (deployedSPB.settlePiggy(testTokenId));
-  //   const rcpt = await (tx2.wait());
-  //   // console.log("rcpt: ");
-  //   // console.log(rcpt);
-  //   console.log("Gas used for settlePiggy: " + rcpt.gasUsed);
-  // });
+  it('logs the gas price of a settlePiggy', async () => {
+    await (deployedSPB.createPiggy(cerc,
+      dres,
+      arbi,
+      coll,
+      lots,
+      spri,
+      expr,
+      euro,
+      ispt,
+      isrq));
 
-  // it('logs the gas price of a claimPayout', async () => {
-  //   await (deployedSPB.createPiggy(cerc,
-  //     dres,
-  //     arbi,
-  //     coll,
-  //     lots,
-  //     spri,
-  //     expr,
-  //     euro,
-  //     ispt,
-  //     isrq));
-  //
-  //   const testTokenId = await (deployedSPB.tokenId());
-  //   const tx2 = await (deployedSPB.claimPayout(testTokenId, 50));
-  //   const rcpt = await (tx2.wait());
-  //   // console.log("rcpt: ");
-  //   // console.log(rcpt);
-  //   console.log("Gas used for claimPayout: " + rcpt.gasUsed);
-  // });
+    const testTokenId = await (deployedSPB.tokenId());
+    const tx2 = await (deployedSPB.settlePiggy(testTokenId));
+    const rcpt = await (tx2.wait());
+    // console.log("rcpt: ");
+    // console.log(rcpt);
+    console.log("Gas used for settlePiggy: " + rcpt.gasUsed);
+  });
+
+  it('logs the gas price of a claimPayout', async () => {
+    await (deployedSPB.createPiggy(cerc,
+      dres,
+      arbi,
+      coll,
+      lots,
+      spri,
+      expr,
+      euro,
+      ispt,
+      isrq));
+
+    // settle for our NFT so that wallet is owed some of cerc token
+    const testTokenId = await (deployedSPB.tokenId());
+    await(deployedSPB.settlePiggy(testTokenId));
+    const tx2 = await (deployedSPB.claimPayout(cerc, 100));
+    const rcpt = await (tx2.wait());
+
+    // TODO: add cost of PigCoin transfer() to this, to account
+    // for stubbed call:
+    console.log("Gas used for claimPayout: " + rcpt.gasUsed);
+  });
 
 
   // need to write gas costs tests for the following in
   // SPBaseline.sol CONTRACT:
   // transferFrom - DONE
   // reclaimAndBurn - DONE
-  // settlePiggy
-  // claimPayout
+  // settlePiggy - DONE
+  // claimPayout - DONE
   
 });

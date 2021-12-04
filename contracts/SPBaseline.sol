@@ -83,9 +83,9 @@ contract SPBaseline {
     uint256 public tokenId;
 
     /**
-    * @title Helps contracts guard against reentrancy attacks.
-    * @author Remco Bloemen <remco@2π.com>, Eenae <alexey@mixbytes.io>
-    * @dev If you mark a function `nonReentrant`, you should also
+    * Helps contracts guard against reentrancy attacks.
+    * Author: Remco Bloemen, Eenae
+    * N.B. If you mark a function `nonReentrant`, you should also
     * mark it `external`.
     */
     uint256 private _guardCounter;
@@ -195,7 +195,7 @@ contract SPBaseline {
         bool _isRequest
     )
         external
-        whenNotFrozen
+        // whenNotFrozen // eliding Freezable functionality
         nonReentrant
         returns (bool)
     {
@@ -302,7 +302,7 @@ contract SPBaseline {
 
         ERC20Balances[msg.sender][collateralERC] = ERC20Balances[msg.sender][collateralERC].add(collateral);
         }
-        emit ReclaimAndBurn(_tokenId, msg.sender, piggies[_tokenId].flags.isRequest);
+        // emit ReclaimAndBurn(_tokenId, msg.sender, piggies[_tokenId].flags.isRequest);
         // remove id from index mapping
         _removeTokenFromOwnedPiggies(piggies[_tokenId].accounts.holder, _tokenId);
         // burn the token (zero out storage fields)
@@ -357,18 +357,13 @@ contract SPBaseline {
         if (payout > collateral) {
         payout = collateral;
         }
-        // extract the service fee
-        uint256 fee = _getFee(payout);
-        ERC20Balances[feeAddress][collateralERC] = ERC20Balances[feeAddress][collateralERC].add(fee);
-        ERC20Balances[holder][collateralERC] = ERC20Balances[holder][collateralERC].add(payout).sub(fee);
-        ERC20Balances[writer][collateralERC] = ERC20Balances[writer][collateralERC].add(collateral).sub(payout);
 
-        emit SettlePiggy(
-        _tokenId,
-        piggies[_tokenId].uintDetails.collateral.sub(payout),
-        payout.sub(fee),
-        msg.sender
-        );
+        // emit SettlePiggy(
+        // _tokenId,
+        // piggies[_tokenId].uintDetails.collateral.sub(payout),
+        // payout.sub(fee),
+        // msg.sender
+        // );
 
         _removeTokenFromOwnedPiggies(holder, _tokenId);
         // clean up piggyId
@@ -392,11 +387,11 @@ contract SPBaseline {
         require(_amount <= ERC20Balances[msg.sender][_paymentToken], "insufficient balance");
         ERC20Balances[msg.sender][_paymentToken] = ERC20Balances[msg.sender][_paymentToken].sub(_amount);
 
-        emit ClaimPayout(
-        msg.sender,
-        _amount,
-        _paymentToken
-        );
+        // emit ClaimPayout(
+        // msg.sender,
+        // _amount,
+        // _paymentToken
+        // );
 
         (bool success, bytes memory result) = address(_paymentToken).call(
         abi.encodeWithSignature(
@@ -481,7 +476,8 @@ contract SPBaseline {
         tokenExpiry = _expiry;
         if (_isRequest) {
         p.uintDetails.reqCollateral = _collateral;
-        p.uintDetails.collateralDecimals = _getERC20Decimals(_collateralERC);
+        // p.uintDetails.collateralDecimals = _getERC20Decimals(_collateralERC);
+        p.uintDetails.collateralDecimals = 2; // MOCKED FOR NOW
         p.uintDetails.expiry = tokenExpiry;
         } else if (_isSplit) {
         require(_splitTokenId != 0, "tokenId cannot be zero");
@@ -499,7 +495,8 @@ contract SPBaseline {
         require(!_isSplit, "split cannot be true when creating a piggy");
         p.accounts.writer = msg.sender;
         p.uintDetails.collateral = _collateral;
-        p.uintDetails.collateralDecimals = _getERC20Decimals(_collateralERC);
+        // p.uintDetails.collateralDecimals = _getERC20Decimals(_collateralERC);
+        p.uintDetails.collateralDecimals = 2; // MOCKED FOR NOW
         p.uintDetails.expiry = tokenExpiry;
         }
 
@@ -523,11 +520,11 @@ contract SPBaseline {
         b[1] = _isPut;
         b[2] = _isRequest;
 
-        emit CreatePiggy(
-        a,
-        i,
-        b
-        );
+        // emit CreatePiggy(
+        // a,
+        // i,
+        // b
+        // );
 
         return true;
     }
@@ -546,12 +543,54 @@ contract SPBaseline {
         _addTokenToOwnedPiggies(_to, _tokenId);
         _clearHolderProposals(_tokenId);
         piggies[_tokenId].accounts.holder = _to;
-        emit TransferPiggy(_tokenId, _from, _to);
+        // emit TransferPiggy(_tokenId, _from, _to);
     }
 
     // !!!
     // eliding all internal functions related to auctions for now
+    // except _reclaimBig, used for reclaimAndBurn
+    // may need to mock part of this related to collateralERC
     // !!!
+
+    /// @dev internal function that will clear bid params, and return premium
+    /// @param _tokenId The id number of the piggy
+    function _reclaimBid(uint256 _tokenId, address recipient)
+        internal
+    {
+        uint256 returnAmount;
+        address collateralERC = piggies[_tokenId].accounts.collateralERC;
+
+        //if RFP bidder gets reqested collateral back, holder gets reserve back
+        if (piggies[_tokenId].flags.isRequest) {
+        address bidder = auctions[_tokenId].activeBidder;
+        // return requested collateral to filler
+        returnAmount = piggies[_tokenId].uintDetails.reqCollateral;
+        bidBalances[bidder][_tokenId] = 0;
+
+        ERC20Balances[bidder][collateralERC] =
+        ERC20Balances[bidder][collateralERC].add(returnAmount);
+
+        // return reserve to holder
+        address holder = piggies[_tokenId].accounts.holder;
+        returnAmount = auctions[_tokenId].details[RESERVE_PRICE];
+        bidBalances[holder][_tokenId] = 0;
+
+        ERC20Balances[holder][collateralERC] =
+        ERC20Balances[holder][collateralERC].add(returnAmount);
+        }
+        else {
+        // refund the _reservePrice premium
+        returnAmount = auctions[_tokenId].details[AUCTION_PREMIUM];
+        bidBalances[recipient][_tokenId] = 0;
+
+        ERC20Balances[recipient][collateralERC] =
+        ERC20Balances[recipient][collateralERC].add(returnAmount);
+        }
+
+        // emit ReclaimBid(_tokenId, msg.sender);
+        // clean up token bid
+        _clearBid(_tokenId);
+    }
 
     // !!! Not sure why this differs across base / companion
     //     this should be OK i think
@@ -633,7 +672,8 @@ contract SPBaseline {
         ownedPiggies[_from][tokenIndex] = lastTokenId;
         ownedPiggiesIndex[lastTokenId] = tokenIndex;
         }
-        ownedPiggies[_from].length--;
+        // old-style syntax (0.4.0) - cannot use
+        // ownedPiggies[_from].length--;
     }
 
     /// Clear the bid auction parameters.

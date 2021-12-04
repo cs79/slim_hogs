@@ -36,7 +36,7 @@ describe('PigCoin', () => {
     ).to.changeBalance(walletTo, 200);
   });
 
-  it('logs the gas price of a transfer', async () => {
+  it('logs the gas price of an ether transfer', async () => {
     var tx = await (wallet.sendTransaction({ to: walletTo.address, value: 200 }))
     var rcpt = await (tx.wait());
     // console.log("rcpt: ");
@@ -50,4 +50,9 @@ describe('PigCoin', () => {
     console.log("Gas used for approval: " + rcpt.gasUsed);
   });
   
+  // TODO: need to add gas cost tests for the following
+  // functions on PigCoin.sol CONTRACT ("token" variable):
+  // transfer
+  // transferFrom
+
 });

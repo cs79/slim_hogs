@@ -45,10 +45,11 @@ describe('SPBaseline', () => {
     console.log("Gas used for createPiggy: " + rcpt.gasUsed);
   });
 
-//   it('logs the gas price of an allowance approval', async () => {
-//     var tx = await (token.approve(walletTo.address, 50));
-//     var rcpt = await (tx.wait());
-//     console.log("Gas used for approval: " + rcpt.gasUsed);
-//   });
+  // need to write gas costs tests for the following in
+  // SPBaseline.sol CONTRACT:
+  // transferFrom
+  // reclaimAndBurn
+  // settlePiggy
+  // claimPayout
   
 });

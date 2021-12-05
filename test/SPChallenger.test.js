@@ -46,7 +46,7 @@ describe('SPChallenger', () => {
   });
 
 
-  // TODO: create a parallel test that checks proper functionality
+  // [DONE] - TODO: create a parallel test that checks proper functionality
   // e.g. piggyPrints[_fprint] == walletTo.address
   // might want to add a getter function to the contract for this purpose
 
@@ -62,7 +62,7 @@ describe('SPChallenger', () => {
         euro,
         ispt,
         0));
-    console.log("fingerprint tx: " + tx1);
+    console.log("fingerprint tx val: " + tx1);
     // expect to equal ethers.utils.keccak256 of the same
     let wala_bytes = ethers.utils.hexZeroPad(ethers.utils.hexlify(wallet.address), 32);
     let cerc_bytes = ethers.utils.hexZeroPad(ethers.utils.hexlify(cerc), 32);
@@ -159,11 +159,52 @@ describe('SPChallenger', () => {
         ispt,
         0, // might break - seems OK actually
         walletTo.address
-    ))
+    ));
     const rcpt = await (tx.wait());
     // console.log("rcpt: ");
     // console.log(rcpt);
     console.log("Gas used for transferFrom: " + rcpt.gasUsed);
+  });
+
+  // [DONE] - TODO: create a functional test for transferFrom
+  it('successfully changes the owner', async () => {
+    await (deployedSPC.createPiggy(
+        cerc,
+        dres,
+        arbi,
+        coll,
+        lots,
+        spri,
+        expr,
+        euro,
+        ispt,
+        isrq));
+
+    await (deployedSPC.transferFrom(
+        wallet.address,
+        cerc,
+        coll,
+        lots,
+        spri,
+        expr,
+        2,
+        euro,
+        ispt,
+        0, // might break - seems OK actually
+        walletTo.address
+    ));
+
+    expect(await (deployedSPC.checkOwner(wallet.address,
+        cerc,
+        coll,
+        lots,
+        spri,
+        expr,
+        2,
+        euro,
+        ispt,
+        0))).to.equal(walletTo.address);
+
   });
 
   it('logs the gas price of a reclaimAndBurn', async () => {

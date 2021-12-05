@@ -71,7 +71,7 @@ describe('SPChallenger', () => {
         2,
         euro,
         ispt,
-        0, // might break
+        0, // might break - seems OK actually
         walletTo.address
     ))
     const rcpt = await (tx.wait());
@@ -80,25 +80,35 @@ describe('SPChallenger', () => {
     console.log("Gas used for transferFrom: " + rcpt.gasUsed);
   });
 
-//   it('logs the gas price of a reclaimAndBurn', async () => {
-//     await (deployedSPC.createPiggy(cerc,
-//       dres,
-//       arbi,
-//       coll,
-//       lots,
-//       spri,
-//       expr,
-//       euro,
-//       ispt,
-//       isrq));
+  it('logs the gas price of a reclaimAndBurn', async () => {
+    await (deployedSPC.createPiggy(cerc,
+      dres,
+      arbi,
+      coll,
+      lots,
+      spri,
+      expr,
+      euro,
+      ispt,
+      isrq));
 
-//     const testTokenId = await (deployedSPC.tokenId());
-//     const tx2 = await (deployedSPC.reclaimAndBurn(testTokenId));
-//     const rcpt = await (tx2.wait());
-//     // console.log("rcpt: ");
-//     // console.log(rcpt);
-//     console.log("Gas used for reclaimAndBurn: " + rcpt.gasUsed);
-//   });
+    let tx = await (deployedSPC.reclaimAndBurn(
+        wallet.address,
+        cerc,
+        coll,
+        lots,
+        spri,
+        expr,
+        2,
+        euro,
+        ispt,
+        0 // might break
+    ))
+    const rcpt = await (tx.wait());
+    // console.log("rcpt: ");
+    // console.log(rcpt);
+    console.log("Gas used for reclaimAndBurn: " + rcpt.gasUsed);
+  });
 
 //   it('logs the gas price of a settlePiggy', async () => {
 //     await (deployedSPC.createPiggy(cerc,

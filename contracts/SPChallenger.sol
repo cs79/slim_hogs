@@ -342,40 +342,78 @@ contract SPChallenger {
     // mock ERC-20
     // remove event emission
 
-    /// @notice Use this to delete a piggy and reclaim the collateral.
-    /// @dev Burns the piggy and reclaims any collateral, uses non-reentrant modifier
-    /// @param _tokenId The id number of the piggy
-    /// @return true is successful, else false
-    function reclaimAndBurn(uint256 _tokenId)
+    // alternative reclaimAndBurn() using fingerprint-based validation
+    function reclaimAndBurn(
+        address _writer,
+        address _collateralERC,
+        uint256 _collateral,
+        uint256 _lotSize,
+        uint256 _strikePrice,
+        uint256 _expiry,
+        uint256 _collateralDecimals,
+        bool _isEuro,
+        bool _isPut,
+        uint256 _acctCreatedNonce
+    )
         external
         nonReentrant
         returns (bool)
     {
-        require(msg.sender == piggies[_tokenId].accounts.holder, "sender must be holder");
-        require(!auctions[_tokenId].flags[AUCTION_ACTIVE] || auctions[_tokenId].details[EXPIRY_TIME] < block.timestamp, "auction active");
+        bytes32 _fprint = fingerprint(
+                _writer,
+                _collateralERC,
+                _collateral,
+                _lotSize,
+                _strikePrice,
+                _expiry,
+                _collateralDecimals,
+                _isEuro,
+                _isPut,
+                _acctCreatedNonce
+            );
+        require(msg.sender == piggyPrints[_fprint], "only owner of fingerprinted token can burn");
+        
+        // eliding auction / RFP flag checks as we do not currently have these mapped to fingerprints
 
-        // reset bid if piggy was previously on bid and auction is restarted
-        if (auctions[_tokenId].activeBidder != address(0)) {
-        _reclaimBid(_tokenId, auctions[_tokenId].activeBidder);
-        }
+        // assuming that this is not an RFP, and thus a valid call to reclaim collateral
+        require(msg.sender == _writer, "sender must own collateral to be reclaimed");
+        ERC20Balances[msg.sender][_collateralERC] = ERC20Balances[msg.sender][_collateralERC].add(_collateral);
 
-        if (!piggies[_tokenId].flags.isRequest) {
-        require(msg.sender == piggies[_tokenId].accounts.writer, "sender must own collateral");
+        // also eliding remove / reset functionality - can reverse-engineer the approximate cost of these for corrected gas cost
 
-        // keep collateralERC address
-        address collateralERC = piggies[_tokenId].accounts.collateralERC;
-        // keep collateral
-        uint256 collateral = piggies[_tokenId].uintDetails.collateral;
-
-        ERC20Balances[msg.sender][collateralERC] = ERC20Balances[msg.sender][collateralERC].add(collateral);
-        }
-        // emit ReclaimAndBurn(_tokenId, msg.sender, piggies[_tokenId].flags.isRequest);
-        // remove id from index mapping
-        _removeTokenFromOwnedPiggies(piggies[_tokenId].accounts.holder, _tokenId);
-        // burn the token (zero out storage fields)
-        _resetPiggy(_tokenId);
         return true;
     }
+
+    // function reclaimAndBurn(uint256 _tokenId)
+    //     external
+    //     nonReentrant
+    //     returns (bool)
+    // {
+    //     require(msg.sender == piggies[_tokenId].accounts.holder, "sender must be holder");
+    //     require(!auctions[_tokenId].flags[AUCTION_ACTIVE] || auctions[_tokenId].details[EXPIRY_TIME] < block.timestamp, "auction active");
+
+    //     // reset bid if piggy was previously on bid and auction is restarted
+    //     if (auctions[_tokenId].activeBidder != address(0)) {
+    //     _reclaimBid(_tokenId, auctions[_tokenId].activeBidder);
+    //     }
+
+    //     if (!piggies[_tokenId].flags.isRequest) {
+    //     require(msg.sender == piggies[_tokenId].accounts.writer, "sender must own collateral");
+
+    //     // keep collateralERC address
+    //     address collateralERC = piggies[_tokenId].accounts.collateralERC;
+    //     // keep collateral
+    //     uint256 collateral = piggies[_tokenId].uintDetails.collateral;
+
+    //     ERC20Balances[msg.sender][collateralERC] = ERC20Balances[msg.sender][collateralERC].add(collateral);
+    //     }
+    //     // emit ReclaimAndBurn(_tokenId, msg.sender, piggies[_tokenId].flags.isRequest);
+    //     // remove id from index mapping
+    //     _removeTokenFromOwnedPiggies(piggies[_tokenId].accounts.holder, _tokenId);
+    //     // burn the token (zero out storage fields)
+    //     _resetPiggy(_tokenId);
+    //     return true;
+    // }
 
     // !!!
     // eliding all auction functionality for now

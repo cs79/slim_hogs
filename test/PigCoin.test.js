@@ -33,7 +33,7 @@ describe('PigCoin', () => {
   it('Send transaction changes receiver balance', async () => {
     await expect(() =>
       wallet.sendTransaction({ to: walletTo.address, value: 200 })
-    ).to.changeBalance(walletTo, 200);
+    ).to.changeEtherBalance(walletTo, 200);
   });
 
   it('logs the gas price of an ether transfer', async () => {

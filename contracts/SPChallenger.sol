@@ -185,7 +185,7 @@ contract SPChallenger {
         uint256 _expiry,
         uint256 _collateralDecimals,
         bool _isEuro,
-        bool _isPut,    
+        bool _isPut,
         uint256 _acctCreatedNonce
     )
         public
@@ -205,6 +205,37 @@ contract SPChallenger {
             _acctCreatedNonce
         ));
         return fprint;
+    }
+
+    function checkOwner(
+        address _writer,
+        address _collateralERC,
+        uint256 _collateral,
+        uint256 _lotSize,
+        uint256 _strikePrice,
+        uint256 _expiry,
+        uint256 _collateralDecimals,
+        bool _isEuro,
+        bool _isPut,
+        uint256 _acctCreatedNonce
+    )
+        public
+        view
+        returns (address)
+    {
+        bytes32 _fprint = fingerprint(
+                _writer,
+                _collateralERC,
+                _collateral,
+                _lotSize,
+                _strikePrice,
+                _expiry,
+                _collateralDecimals,
+                _isEuro,
+                _isPut,
+                _acctCreatedNonce
+            );
+        return piggyPrints[_fprint];
     }
 
     /// @notice Use this to create a new piggy non-fungible token.
@@ -304,7 +335,7 @@ contract SPChallenger {
         uint256 _expiry,
         uint256 _collateralDecimals,
         bool _isEuro,
-        bool _isPut,    
+        bool _isPut,
         uint256 _acctCreatedNonce,
         address _to
     )
@@ -466,7 +497,7 @@ contract SPChallenger {
         // piggies[1].uintDetails.settlementPrice = 8000;
         // piggies[1].flags.hasBeenCleared = true;
         // require(piggies[1].flags.hasBeenCleared, "piggy is not cleared");
-        
+
         uint256 payout;
         // if(_isEuro) {
         // require(_expiry <= block.timestamp, "european must be expired");

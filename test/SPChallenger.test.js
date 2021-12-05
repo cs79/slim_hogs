@@ -99,10 +99,10 @@ describe('SPChallenger', () => {
         lots,
         spri,
         expr,
-        2,
+        2,  // faked decimals
         euro,
         ispt,
-        0 // might break
+        0   // acctCreatedNonce
     ))
     const rcpt = await (tx.wait());
     // console.log("rcpt: ");
@@ -110,25 +110,36 @@ describe('SPChallenger', () => {
     console.log("Gas used for reclaimAndBurn: " + rcpt.gasUsed);
   });
 
-//   it('logs the gas price of a settlePiggy', async () => {
-//     await (deployedSPC.createPiggy(cerc,
-//       dres,
-//       arbi,
-//       coll,
-//       lots,
-//       spri,
-//       expr,
-//       euro,
-//       ispt,
-//       isrq));
+  it('logs the gas price of a settlePiggy', async () => {
+    await (deployedSPC.createPiggy(cerc,
+      dres,
+      arbi,
+      coll,
+      lots,
+      spri,
+      expr,
+      euro,
+      ispt,
+      isrq));
 
-//     const testTokenId = await (deployedSPC.tokenId());
-//     const tx2 = await (deployedSPC.settlePiggy(testTokenId));
-//     const rcpt = await (tx2.wait());
-//     // console.log("rcpt: ");
-//     // console.log(rcpt);
-//     console.log("Gas used for settlePiggy: " + rcpt.gasUsed);
-//   });
+    let tx = await (deployedSPC.settlePiggy(
+        wallet.address,
+        cerc,
+        coll,
+        lots,
+        spri,
+        expr,
+        2,  // faked decimals
+        euro,
+        ispt,
+        0,  // acctCreatedNonce
+        walletTo.address // mocked as holder
+    ))
+    const rcpt = await (tx.wait());
+    // console.log("rcpt: ");
+    // console.log(rcpt);
+    console.log("Gas used for settlePiggy: " + rcpt.gasUsed);
+  });
 
 //   it('logs the gas price of a claimPayout', async () => {
 //     await (deployedSPC.createPiggy(cerc,

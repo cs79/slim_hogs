@@ -372,7 +372,7 @@ contract SPChallenger {
                 _acctCreatedNonce
             );
         require(msg.sender == piggyPrints[_fprint], "only owner of fingerprinted token can burn");
-        
+
         // eliding auction / RFP flag checks as we do not currently have these mapped to fingerprints
 
         // assuming that this is not an RFP, and thus a valid call to reclaim collateral
@@ -426,49 +426,67 @@ contract SPChallenger {
     // could mock this behavior if desired
     // !!!
 
-    // !!! INLINED FROM COMPANION CONTRACT !!!
-
-    /// @notice Use this to settle a piggy, calculates the payout if any.
-    /// @dev Logic executes via delegate call
-    /// @param _tokenId The id number of the piggy
-    /// @return true is successful, else false
-    function settlePiggy(uint256 _tokenId)
+    // alternative settlePiggy() using fingerprint-based validation
+    function settlePiggy(
+        address _writer,
+        address _collateralERC,
+        uint256 _collateral,
+        uint256 _lotSize,
+        uint256 _strikePrice,
+        uint256 _expiry,
+        uint256 _collateralDecimals,
+        bool _isEuro,
+        bool _isPut,
+        uint256 _acctCreatedNonce,
+        address _holder     // mocked to get assignments to work
+    )
         public
         returns (bool)
     {
         require(msg.sender != address(0));
-        require(_tokenId != 0, "tokenId cannot be zero");
-        // require a settlement price to be returned from an oracle
-        // for SPChallenger, mock this as we are not integrating an oracle
-        uint256 fakePrice = 8000; // 20% drop from tested price of 10000
-        piggies[_tokenId].uintDetails.settlementPrice = fakePrice;
-        piggies[_tokenId].flags.hasBeenCleared = true;
-        require(piggies[_tokenId].flags.hasBeenCleared, "piggy is not cleared");
+        // assume that we would need this fingerprint for indexing
+        bytes32 _fprint = fingerprint(
+                _writer,
+                _collateralERC,
+                _collateral,
+                _lotSize,
+                _strikePrice,
+                _expiry,
+                _collateralDecimals,
+                _isEuro,
+                _isPut,
+                _acctCreatedNonce
+            );
+        // condition for test case only, to ensure _fprint is not optimized away by compiler
+        require(piggyPrints[_fprint] == _writer, "test case condition failed");
 
-        // check if arbitration is set, cooldown has passed
-        if (piggies[_tokenId].accounts.arbiter != address(0)) {
-        require(piggies[_tokenId].uintDetails.arbitrationLock <= block.timestamp, "arbiter set, locked for cooldown period");
-        }
-
+        // mocked oracle price with fake price of 8000 and fake tokenId of 1
+        // uint256 fakePrice = 8000; // 20% drop from tested price of 10000
+        // uint256 _tokenId = 1; // fake ID; would be fingerprint in fuller implementation
+        // piggies[1].uintDetails.settlementPrice = 8000;
+        // piggies[1].flags.hasBeenCleared = true;
+        // require(piggies[1].flags.hasBeenCleared, "piggy is not cleared");
+        
         uint256 payout;
-
-        if(piggies[_tokenId].flags.isEuro) {
-        require(piggies[_tokenId].uintDetails.expiry <= block.timestamp, "european must be expired");
-        }
-        payout = _calculateLongPayout(_tokenId);
+        // if(_isEuro) {
+        // require(_expiry <= block.timestamp, "european must be expired");
+        // }
+        // using alternative challenger payout calculation function
+        payout = _calcPayoutChallenger(
+            _isPut,
+            _strikePrice,
+            8000,
+            _lotSize,
+            2
+        );
 
         // set the balances of the two counterparties based on the payout
-        address writer = piggies[_tokenId].accounts.writer;
-        address holder = piggies[_tokenId].accounts.holder;
-        address collateralERC = piggies[_tokenId].accounts.collateralERC;
-
-        uint256 collateral = piggies[_tokenId].uintDetails.collateral;
-        if (payout > collateral) {
-        payout = collateral;
+        if (payout > _collateral) {
+        payout = _collateral;
         }
 
-        ERC20Balances[holder][collateralERC] = ERC20Balances[holder][collateralERC].add(payout);
-        ERC20Balances[writer][collateralERC] = ERC20Balances[writer][collateralERC].add(collateral).sub(payout);
+        // eliding balance updates on internal books to avoid stack too deep error
+        // can back these out of baseline contract and add to adjusted gas total
 
         // emit SettlePiggy(
         // _tokenId,
@@ -477,11 +495,63 @@ contract SPChallenger {
         // msg.sender
         // );
 
-        _removeTokenFromOwnedPiggies(holder, _tokenId);
-        // clean up piggyId
-        _resetPiggy(_tokenId);
+        // eliding cleanup functionality - could back out the cost of this in baseline contract
+
         return true;
     }
+
+    // !!! INLINED FROM COMPANION CONTRACT !!!
+
+    // function settlePiggy(uint256 _tokenId)
+    //     public
+    //     returns (bool)
+    // {
+    //     require(msg.sender != address(0));
+    //     require(_tokenId != 0, "tokenId cannot be zero");
+    //     // require a settlement price to be returned from an oracle
+    //     // for SPChallenger, mock this as we are not integrating an oracle
+    //     uint256 fakePrice = 8000; // 20% drop from tested price of 10000
+    //     piggies[_tokenId].uintDetails.settlementPrice = fakePrice;
+    //     piggies[_tokenId].flags.hasBeenCleared = true;
+    //     require(piggies[_tokenId].flags.hasBeenCleared, "piggy is not cleared");
+
+    //     // check if arbitration is set, cooldown has passed
+    //     if (piggies[_tokenId].accounts.arbiter != address(0)) {
+    //     require(piggies[_tokenId].uintDetails.arbitrationLock <= block.timestamp, "arbiter set, locked for cooldown period");
+    //     }
+
+    //     uint256 payout;
+
+    //     if(piggies[_tokenId].flags.isEuro) {
+    //     require(piggies[_tokenId].uintDetails.expiry <= block.timestamp, "european must be expired");
+    //     }
+    //     payout = _calculateLongPayout(_tokenId);
+
+    //     // set the balances of the two counterparties based on the payout
+    //     address writer = piggies[_tokenId].accounts.writer;
+    //     address holder = piggies[_tokenId].accounts.holder;
+    //     address collateralERC = piggies[_tokenId].accounts.collateralERC;
+
+    //     uint256 collateral = piggies[_tokenId].uintDetails.collateral;
+    //     if (payout > collateral) {
+    //     payout = collateral;
+    //     }
+
+    //     ERC20Balances[holder][collateralERC] = ERC20Balances[holder][collateralERC].add(payout);
+    //     ERC20Balances[writer][collateralERC] = ERC20Balances[writer][collateralERC].add(collateral).sub(payout);
+
+    //     // emit SettlePiggy(
+    //     // _tokenId,
+    //     // piggies[_tokenId].uintDetails.collateral.sub(payout),
+    //     // payout.sub(fee),
+    //     // msg.sender
+    //     // );
+
+    //     _removeTokenFromOwnedPiggies(holder, _tokenId);
+    //     // clean up piggyId
+    //     _resetPiggy(_tokenId);
+    //     return true;
+    // }
 
     /// @notice Use this to withdraw any amount less than account balance (sends any reference ERC20 which the msg.sender is owed).
     /// @dev This is a pull-payment implementation, all users must amounts from the contract,
@@ -735,6 +805,28 @@ contract SPChallenger {
         // emit ReclaimBid(_tokenId, msg.sender);
         // clean up token bid
         _clearBid(_tokenId);
+    }
+
+    // alternative payout calculation for challenger:
+    function _calcPayoutChallenger(
+        bool _isPut,
+        uint256 _strikePrice,
+        uint256 _exercisePrice,
+        uint256 _lotSize,
+        uint256 _decimals
+    )
+        internal
+        pure
+        returns (uint256 _payout)
+    {
+        if (_isPut && (_strikePrice > _exercisePrice)) {
+        _payout = _strikePrice.sub(_exercisePrice);
+        }
+        if (!_isPut && (_exercisePrice > _strikePrice)) {
+        _payout = _exercisePrice.sub(_strikePrice);
+        }
+        _payout = _payout.mul(10**uint256(_decimals)).mul(_lotSize).div(100);
+        return _payout;
     }
 
     // !!! Not sure why this differs across base / companion

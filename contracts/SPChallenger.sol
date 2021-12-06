@@ -412,6 +412,9 @@ contract SPChallenger {
 
         // also eliding remove / reset functionality - can reverse-engineer the approximate cost of these for corrected gas cost
 
+        // but we do want to invalidate the owner for the burned token
+        piggyPrints[_fprint] = address(0);
+
         return true;
     }
 

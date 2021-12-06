@@ -237,6 +237,56 @@ describe('SPChallenger', () => {
     console.log("Gas used for reclaimAndBurn: " + rcpt.gasUsed);
   });
 
+  // functional test for reclaimAndBurn
+  it('should set the owner to zero address for burned token', async () => {
+    await (deployedSPC.createPiggy(cerc,
+        dres,
+        arbi,
+        coll,
+        lots,
+        spri,
+        expr,
+        euro,
+        ispt,
+        isrq));
+
+    expect(await (deployedSPC.checkOwner(wallet.address,
+        cerc,
+        coll,
+        lots,
+        spri,
+        expr,
+        2,
+        euro,
+        ispt,
+        0))).to.equal(wallet.address);
+
+    // now burn the token and re-check the address
+    await (deployedSPC.reclaimAndBurn(
+        wallet.address,
+        cerc,
+        coll,
+        lots,
+        spri,
+        expr,
+        2,  // faked decimals
+        euro,
+        ispt,
+        0   // acctCreatedNonce
+    ));
+
+    expect(await (deployedSPC.checkOwner(wallet.address,
+        cerc,
+        coll,
+        lots,
+        spri,
+        expr,
+        2,
+        euro,
+        ispt,
+        0))).to.equal(ethers.constants.AddressZero);
+  } )
+
   it('logs the gas price of a settlePiggy', async () => {
     await (deployedSPC.createPiggy(cerc,
       dres,

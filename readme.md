@@ -1,6 +1,11 @@
-# slim_hog
+# Slim Hogs: Storage-optimized research for SmartPiggies
 
-Slim version of some Smart Pigs.
+This repository contains a minimal subset of SmartPiggies functionality with baseline implementations tested against
+a storage-optimized challenger implementation.
+
+## Contracts
+
+Core functionality is implemented in `SPBaseline.sol` and `SPChallenger.sol`. `SafeMath.sol` is used for arithmetic operations in both contracts. `PigCoin.sol` is a standard ERC-20 contract used for calculating the gas cost of mocked calls in the alternative functionality implementations.
 
 ## Setup
 
@@ -10,17 +15,19 @@ Install dependencies
 
 ## Test
 
-Run the tests
+Run the tests for core functionality coverage on the challenger contract, and gas costs on all contracts. Functional tests for
+the baseline contract are covered in the [SmartPiggies repo](https://github.com/smartpiggies/smartpiggies).
 
     yarn test
 
-## Size the contracts
+## Additional development tools
+### Size the contracts
 
 Get the size of your contracts after compilation
 
     yarn contract-sizer
 
-## Deploy a contract locally
+### Deploy a contract locally
 
 In one terminal window, run
 
@@ -30,7 +37,7 @@ In a separate window run:
 
     node scripts/sample-script.js
 
-## HardHat Commands
+### HardHat Commands
 
 Try running some of the following tasks:
 

@@ -3,6 +3,8 @@
 This repository contains a minimal subset of SmartPiggies functionality with baseline implementations tested against
 a storage-optimized challenger implementation.
 
+Writeup of research results is available at [this link](https://www.dropbox.com/s/7u46aj8x1wjftp2/Final%20Project%20Report%20-%20Alexander%20Lee%20and%20Edward%20Forgacs.pdf?dl=0).
+
 ## Contracts
 
 Core functionality is implemented in `SPBaseline.sol` and `SPChallenger.sol`. `SafeMath.sol` is used for arithmetic operations in both contracts. `PigCoin.sol` is a standard ERC-20 contract used for calculating the gas cost of mocked calls in the alternative functionality implementations.
@@ -51,7 +53,7 @@ Try running some of the following tasks:
 
 ## Library Docs
 
-[HardHat](https://hardhat.org/getting-started/)
-[HardHat Waffle](https://hardhat.org/plugins/nomiclabs-hardhat-waffle.html)
-[OpenZepplin ERC20](https://docs.openzeppelin.com/contracts/2.x/api/token/erc20)
+* [HardHat](https://hardhat.org/getting-started/)
+* [HardHat Waffle](https://hardhat.org/plugins/nomiclabs-hardhat-waffle.html)
+* [OpenZepplin ERC20](https://docs.openzeppelin.com/contracts/2.x/api/token/erc20)
 
